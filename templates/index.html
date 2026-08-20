@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ValuAI - Premium Real Estate Valuation Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <h1>Valu<span>AI</span></h1>
+            <p>Advanced Real Estate Valuation & Financial Intelligence. Estimate property values and run affordability projections using tuned regression models.</p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs-container">
+            <button class="tab-btn active" data-tab="tab-valuation">📊 Valuation Dashboard</button>
+            <button class="tab-btn" data-tab="tab-financial">💵 Affordability Calculator</button>
+            <button class="tab-btn" data-tab="tab-performance">📈 Model Analytics</button>
+        </div>
+
+        <!-- Main Dashboard Content -->
+        <div class="dashboard-grid">
+            <!-- Left Column: Input Control Panel -->
+            <aside class="glass-panel inputs-panel">
+                <!-- Tab 1 Inputs: Valuation Controls -->
+                <div id="inputs-valuation" class="tab-inputs active">
+                    <h2 class="panel-title"><span class="icon">🛠️</span> Property Characteristics</h2>
+                    
+                    <!-- Selected Model -->
+                    <div class="input-group">
+                        <div class="input-header">
+                            <label for="active-model">Valuation Model</label>
+                        </div>
+                        <select id="active-model" class="custom-select">
+                            <option value="ElasticNet Regression">ElasticNet Regression (Tuned - Recommended)</option>
+                            <option value="Ridge Regression">Ridge Regression (L2 Regularized)</option>
+                            <option value="Lasso Regression">Lasso Regression (L1 Sparse)</option>
+                            <option value="OLS (Log Target)">OLS Baseline (Log Scale)</option>
+                            <option value="OLS Baseline">OLS Baseline (Raw Scale)</option>
+                        </select>
+                    </div>
+
+                    <!-- Square Footage -->
+                    <div class="input-group">
+                        <div class="input-header">
+                            <label for="living-area">Above Grade Living Area</label>
+                            <span id="living-area-val" class="input-value-badge">1,500 sq ft</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" id="living-area" min="300" max="4000" value="1500" step="10">
+                        </div>
+                    </div>
+
+                    <!-- Bedrooms -->
+                    <div class="input-group">
+                        <div class="input-header">
+                            <label>Bedrooms Above Grade</label>
+                        </div>
+                        <div class="radio-tile-group">
+                            <div class="radio-tile-container">
+                                <input type="radio" id="bed-1" name="bedrooms" value="1">
+                                <label for="bed-1" class="radio-tile">1</label>
+                            </div>
+                            <div class="radio-tile-container">
+                                <input type="radio" id="bed-2" name="bedrooms" value="2">
+                                <label for="bed-2" class="radio-tile">2</label>
+                            </div>
+                            <div class="radio-tile-container">
+                                <input type="radio" id="bed-3" name="bedrooms" value="3" checked>
+                                <label for="bed-3" class="radio-tile">3</label>
+                            </div>
+                            <div class="radio-tile-container">
+                                <input type="radio" id="bed-4" name="bedrooms" value="4">
+                                <label for="bed-4" class="radio-tile">4</label>
+                            </div>
+                            <div class="radio-tile-container">
+                                <input type="radio" id="bed-5" name="bedrooms" value="5">
+                                <label for="bed-5" class="radio-tile">5</label>
+                            </div>
+                            <div class="radio-tile-container">
+                                <input type="radio" id="bed-6" name="bedrooms" value="6">
+                                <label for="bed-6" class="radio-tile">6+</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bathrooms (Steppers) -->
+                    <div class="input-group">
+                        <div class="input-header">
+                            <label>Bathroom Configuration</label>
+                        </div>
+                        <div class="bathroom-grid">
+                            <div class="stepper-container">
+                                <span class="stepper-label">Full Baths</span>
+                                <div class="stepper-controls">
+                                    <button class="stepper-btn" onclick="adjustStepper('full-bath', -1)">-</button>
+                                    <span class="stepper-value" id="full-bath">2</span>
+                                    <button class="stepper-btn" onclick="adjustStepper('full-bath', 1)">+</button>
+                                </div>
+                            </div>
+
+                            <div class="stepper-container">
+                                <span class="stepper-label">Half Baths</span>
+                                <div class="stepper-controls">
+                                    <button class="stepper-btn" onclick="adjustStepper('half-bath', -1)">-</button>
+                                    <span class="stepper-value" id="half-bath">1</span>
+                                    <button class="stepper-btn" onclick="adjustStepper('half-bath', 1)">+</button>
+                                </div>
+                            </div>
+
+                            <div class="stepper-container">
+                                <span class="stepper-label">Basement Full</span>
+                                <div class="stepper-controls">
+                                    <button class="stepper-btn" onclick="adjustStepper('bsmt-full-bath', -1)">-</button>
+                                    <span class="stepper-value" id="bsmt-full-bath">0</span>
+                                    <button class="stepper-btn" onclick="adjustStepper('bsmt-full-bath', 1)">+</button>
+                                </div>
+                            </div>
+
+                            <div class="stepper-container">
+                                <span class="stepper-label">Basement Half</span>
+                                <div class="stepper-controls">
+                                    <button class="stepper-btn" onclick="adjustStepper('bsmt-half-bath', -1)">-</button>
+                                    <span class="stepper-value" id="bsmt-half-bath">0</span>
+                                    <button class="stepper-btn" onclick="adjustStepper('bsmt-half-bath', 1)">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2 Inputs: Mortgage Calculator Settings -->
+                <div id="inputs-financial" class="tab-inputs">
+                    <h2 class="panel-title"><span class="icon">⚙️</span> Mortgage Configuration</h2>
+                    
+                    <!-- Down Payment Percent -->
+                    <div class="input-group">
+                        <div class="input-header">
+                            <label for="down-payment">Down Payment Percentage</label>
+                            <span id="down-payment-val" class="input-value-badge">20%</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" id="down-payment" min="0" max="100" value="20" step="5">
+                        </div>
+                    </div>
+
+                    <!-- Mortgage Interest Rate -->
+                    <div class="input-group">
+                        <div class="input-header">
+                            <label for="interest-rate">Annual Interest Rate</label>
+                            <span id="interest-rate-val" class="input-value-badge">6.5%</span>
+                        </div>
+                        <div class="slider-container">
+                            <input type="range" id="interest-rate" min="2.0" max="10.0" value="6.5" step="0.1">
+                        </div>
+                    </div>
+
+                    <!-- Loan Term -->
+                    <div class="input-group">
+                        <div class="input-header">
+                            <label for="loan-term">Loan Duration</label>
+                        </div>
+                        <select id="loan-term" class="custom-select">
+                            <option value="30">30-Year Fixed Term</option>
+                            <option value="15">15-Year Fixed Term</option>
+                            <option value="10">10-Year Fixed Term</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tab 3 Inputs: Model Performance Details -->
+                <div id="inputs-performance" class="tab-inputs">
+                    <h2 class="panel-title"><span class="icon">🧬</span> Model Properties</h2>
+                    <p class="panel-desc">Visualizing feature importances and testing different modeling approaches on the target distributions.</p>
+                    <div class="info-card">
+                        <h4>Ames Housing Dataset Info</h4>
+                        <ul>
+                            <li><strong>Sample Size:</strong> 1,456 cleaned records</li>
+                            <li><strong>Evaluation:</strong> 5-Fold Cross-Validation</li>
+                            <li><strong>Target:</strong> SalePrice (USD)</li>
+                            <li><strong>Log Scaled:</strong> $y' = \log(1+y)$</li>
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Right Column: Interactive Dashboard Display Cards -->
+            <main class="results-container">
+                <!-- Tab Panel 1: Valuation Results -->
+                <div id="panel-valuation" class="tab-panel active">
+                    <section class="glass-panel result-card">
+                        <div class="result-header">
+                            <h3 id="result-model-name">Estimated Value (ElasticNet)</h3>
+                            <div class="price-display" id="predicted-price">$0</div>
+                        </div>
+
+                        <!-- Visual scale bar -->
+                        <div class="visual-bar-container">
+                            <div class="scale-labels">
+                                <span>Starter Home ($50k)</span>
+                                <span>Luxury Estate ($400k+)</span>
+                            </div>
+                            <div class="scale-track">
+                                <div class="scale-fill" id="visual-scale-fill"></div>
+                                <div class="scale-indicator" id="visual-scale-indicator"></div>
+                            </div>
+                        </div>
+
+                        <!-- Info Metrics -->
+                        <div class="metric-rows">
+                            <div class="metric-row">
+                                <span class="metric-label">Valuation Rate:</span>
+                                <span class="metric-val" id="price-per-sqft">$0/sq ft</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Total Bathrooms Score:</span>
+                                <span class="metric-val" id="total-bathrooms-val">2.5</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Market Standing:</span>
+                                <span class="metric-val highlight" id="market-standing">Near Average</span>
+                            </div>
+                        </div>
+
+                        <!-- Action Controls -->
+                        <div class="action-row">
+                            <button onclick="downloadJsonReport()" class="btn btn-secondary">📥 Download Report (JSON)</button>
+                            <button onclick="window.print()" class="btn btn-primary">🖨️ Print Valuation</button>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Tab Panel 2: Affordability Calculator -->
+                <div id="panel-financial" class="tab-panel">
+                    <section class="glass-panel result-card">
+                        <div class="result-header">
+                            <h3>Monthly Mortgage Estimate</h3>
+                            <div class="price-display" id="mortgage-payment">$0<span>/mo</span></div>
+                        </div>
+
+                        <div class="metric-rows">
+                            <div class="metric-row">
+                                <span class="metric-label">Principal & Interest:</span>
+                                <span class="metric-val" id="mortgage-pi">$0/mo</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Est. Property Tax (1.2%):</span>
+                                <span class="metric-val" id="property-tax">$0/mo</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Estimated Loan Amount:</span>
+                                <span class="metric-val highlight" id="loan-amount">$0</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Required Household Income:</span>
+                                <span class="metric-val highlight" id="required-income">$0/yr</span>
+                            </div>
+                        </div>
+                        <p class="disclaimer-text">* Estimates exclude home insurance and HOA fees. Required income is calculated using standard 28% front-end debt ratio recommendations.</p>
+                    </section>
+                </div>
+
+                <!-- Tab Panel 3: Performance Metrics and Graphs -->
+                <div id="panel-performance" class="tab-panel">
+                    <section class="glass-panel metrics-display-card">
+                        <h3 class="card-subtitle">Model Cross-Validation Comparison</h3>
+                        <div class="table-container">
+                            <table class="metrics-table">
+                                <thead>
+                                    <tr>
+                                        <th>Model Name</th>
+                                        <th>Valuation</th>
+                                        <th>CV R² Score</th>
+                                        <th>CV MAE</th>
+                                        <th>CV RMSLE</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="metrics-table-body">
+                                    <!-- Rendered dynamically by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Chart Grid -->
+                        <div class="charts-grid">
+                            <div class="chart-box">
+                                <h4>Model Predictions Comparison</h4>
+                                <div class="canvas-container">
+                                    <canvas id="modelComparisonChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="chart-box">
+                                <h4>Model Coefficient Weights</h4>
+                                <div class="canvas-container">
+                                    <canvas id="coefChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <span class="pulse-dot"></span>
+            ValuAI Engine Connected & Active | Prodigy InfoTech ML Internship - Task 1
+        </footer>
+    </div>
+
+    <!-- Script -->
+    <script src="/static/script.js"></script>
+</body>
+</html>
